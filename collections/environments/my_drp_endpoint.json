@@ -1,0 +1,39 @@
+{
+	"id": "2d8f7a2f-6e74-475e-afc0-9bc1087f4e49",
+	"name": "my_drp_endpoint",
+	"values": [
+		{
+			"key": "RS_ENDPOINT",
+			"value": "https://10.10.10.10:8092",
+			"enabled": true
+		},
+		{
+			"key": "RS_USERNAME",
+			"value": "drpadmin",
+			"enabled": true
+		},
+		{
+			"key": "RS_PASSWORD",
+			"value": "PASSWORD",
+			"enabled": true
+		},
+		{
+			"key": "RS_UUID",
+			"value": "8550d26a-ca62-4f83-b4d4-de1a8b03e614",
+			"enabled": true
+		},
+		{
+			"key": "PROFILE",
+			"value": "test-profile",
+			"enabled": true
+		},
+		{
+			"key": "WORKFLOW",
+			"value": "test-workflow",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2020-02-23T00:43:46.494Z",
+	"_postman_exported_using": "Postman/7.18.1"
+}

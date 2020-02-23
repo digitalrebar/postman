@@ -1,0 +1,888 @@
+{
+	"info": {
+		"_postman_id": "d0b7d5b7-bc7e-41c9-ae60-60326b1e0ef4",
+		"name": "DRP Patterns",
+		"description": "OVERVIEW\n--------\n\nDigital Rebar Platform - various Postman related Patterns for operating infrastructure managed by DRP.\n\nTo operate this Collection you will need to set an apprpriate Environment with your DRP Endpoint information.  In addition, various Postman Variables are used to drive the various patterns found in this collection.\n\n\nSETUP\n-----\n\nCreate an Environment for the specific DRP Endpoint you will work with.  Set the following Variables (with examples, modify appropriately):\n\n  * RS_ENDPOINT = https://10.10.10.10:8092\n  * RS_USERNAME = drpadmin\n  * RS_PASSWORD = PASSWORD\n\n\nOPERATION\n---------\n\nThe following Postman Variables implement the various pattern change behaviors.\n\n  * PROFILE = profile_to_change\n  * WORKFLOW = workflow_to_set\n\nSetting these values will either add/remove (profile), or set the operational Workflow on the Machine object.\n\n\nNOTES\n-----\n\nThe Digital Rebar Platform API relies extensively on the JSON PATCH operations.  This means to insure atomicty and safety guarantees, you must first get the current state of a JSON Field that you would like to change, then modify the field with the new values.\n\nThis method guarantees that you will only modify a Field from a given start point to an intended destination.  If some one/thing makes an API, CLI, or Web Portal call that changes the object on you, the JSON PATCH operation will fail, protecting against unintended effects.\n\n\nTODO\n----\n\nThis needs to be rewritten to take better advantage of reusable components.  Currently, a lot of the \"GET\" operations are duplicated, and not very well laid out for reusability or future modification.\n\n\n",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "GET Requests",
+			"item": [
+				{
+					"name": "Get All Machines (slim objects)",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "82e63a75-da33-4216-a209-9be1f5189a76",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{RS_ENDPOINT}}/api/v3/machines?slim=Params,Meta",
+							"host": [
+								"{{RS_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"machines"
+							],
+							"query": [
+								{
+									"key": "slim",
+									"value": "Params,Meta"
+								}
+							]
+						},
+						"description": "Gets the machine objects"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Workflows",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "82e63a75-da33-4216-a209-9be1f5189a76",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{RS_ENDPOINT}}/api/v3/workflows",
+							"host": [
+								"{{RS_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"workflows"
+							]
+						},
+						"description": "Gets the machine objects"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Profiles",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "82e63a75-da33-4216-a209-9be1f5189a76",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{RS_ENDPOINT}}/api/v3/profiles",
+							"host": [
+								"{{RS_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"profiles"
+							]
+						},
+						"description": "Gets the machine objects"
+					},
+					"response": []
+				}
+			],
+			"description": "Various GET requests to identify resources you want to work with.  For example, Machine UUIDs, Workflows, etc.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "9b009fb1-434c-4173-a6a8-ac2b0fb42f32",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "40409d4a-c489-441a-ad8d-7c0945323c6b",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Profiles",
+			"item": [
+				{
+					"name": "SET Profile on Machine",
+					"item": [
+						{
+							"name": "Prep Profiles with Add",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "e70473ed-02d2-49f6-9040-3b0d63aad8c4",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "b713c31f-2ec4-491e-8493-d82ea877139c",
+										"exec": [
+											"//",
+											"// Get our existing Profiles to build our PATCH operations from.",
+											"// Store them as Environment RS_PROFILE variable.",
+											"//",
+											"let response = pm.response.json(),",
+											"    profiles = JSON.stringify(response.Profiles);",
+											"pm.environment.set(\"RS_PROFILES_CURRENT\", profiles);",
+											"",
+											"var new_profiles = JSON.parse(profiles);",
+											"var add = pm.variables.get(\"PROFILE\");",
+											"new_profiles.push(add);",
+											"const json_new_profiles = JSON.stringify(new_profiles);",
+											"",
+											"pm.environment.set(\"RS_PROFILES_NEW\", json_new_profiles);",
+											"",
+											"const DBG = pm.environment.get(\"RS_DEBUG_ENABLE\") || false;",
+											"if (DBG) {",
+											"    console.log(\"add profile: \" + add);",
+											"    console.log(\"current profiles: \" + profiles);",
+											"    console.log(\"new profiles: \" + json_new_profiles);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}?slim=Params,Meta",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									],
+									"query": [
+										{
+											"key": "slim",
+											"value": "Params,Meta"
+										}
+									]
+								},
+								"description": "GET the current profiles on a Machine to use in the PATCH operation."
+							},
+							"response": []
+						},
+						{
+							"name": "PATCH With New Profile",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n\t{\n\t\t\"op\": \"test\",\n\t\t\"path\": \"/Profiles\",\n\t\t\"value\": {{RS_PROFILES_CURRENT}}\n\t},\n\t{\n\t\t\"op\": \"replace\",\n\t\t\"path\": \"/Profiles\",\n\t\t\"value\": {{RS_PROFILES_NEW}}\n\t}\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									]
+								},
+								"description": "GET the current profiles on a Machine to use in the PATCH operation."
+							},
+							"response": []
+						}
+					],
+					"description": "Set a Profile on a Machine via the JSON PATCH operation.  You must specify a Profile to add, and a Machine UUID to operate on.  These are set with the Postman Variables:\n\n  PROFILE - defines a profile to set on the Machine Object\n  RS_UUID - the Machine Object to add the Profile\n  \nThis set of API operations will also create/overwrite Variables as follows:\n\n  RS_PROFILES_CURRENT: Current Profiles specified on Machine RS_UUID\n  RS_PROFIELS_NEW: New set of profiles to apply incorporating PROFILE\n ",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "2995391f-0d8b-497e-bdf2-ca8a8e404ed5",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "c02eabfa-25c6-481f-afb6-e9c56d9aac3a",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Remove Profile from Machine",
+					"item": [
+						{
+							"name": "Prep Profiles with Delete",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "6960ba3f-8cbf-42fa-89c7-d6197aeb07b4",
+										"exec": [
+											"//",
+											"// Get our existing Profiles to build our PATCH operations from.",
+											"// Store them as Environment RS_PROFILE_CURRENT variable.  Set the",
+											"// newly updated profiles with the added PROFILE to RS_PROFILES_NEW.",
+											"//",
+											"let response = pm.response.json(),",
+											"    profiles = JSON.stringify(response.Profiles);",
+											"pm.environment.set(\"RS_PROFILES_CURRENT\", profiles);",
+											"",
+											"var remove = pm.variables.get(\"PROFILE\");",
+											"let new_profiles = _.pull(response.Profiles, remove);",
+											"const json_new_profiles = JSON.stringify(new_profiles)",
+											"pm.environment.set(\"RS_PROFILES_NEW\", json_new_profiles);",
+											"",
+											"const DBG = pm.environment.get(\"RS_DEBUG_ENABLE\") || false;",
+											"if (DBG) {",
+											"    console.log(\"remove: \" + remove);",
+											"    console.log(\"profiles: \" + profiles);",
+											"    console.log(\"json_new_profiles: \" + json_new_profiles);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}?slim=Params,Meta",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									],
+									"query": [
+										{
+											"key": "slim",
+											"value": "Params,Meta"
+										}
+									]
+								},
+								"description": "GET the current profiles on a Machine to use in the PATCH operation."
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Profile",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n\t{\n\t\t\"op\": \"test\",\n\t\t\"path\": \"/Profiles\",\n\t\t\"value\": {{RS_PROFILES_CURRENT}}\n\t},\n\t{\n\t\t\"op\": \"replace\",\n\t\t\"path\": \"/Profiles\",\n\t\t\"value\": {{RS_PROFILES_NEW}}\n\t}\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "Removes the Profile specified in the Postman \"PROFILE\" Variable.",
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"description": "Patterns for manipulating Profiles on a Machine.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"id": "03af281e-c097-435f-a3b4-b5a9f5b51683",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"id": "017dd708-f808-4501-a20c-b23483653d37",
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Workflows",
+			"item": [
+				{
+					"name": "Get Current Workflow",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6960ba3f-8cbf-42fa-89c7-d6197aeb07b4",
+								"exec": [
+									"//",
+									"// Get our existing Workflow to build our PATCH operations from.",
+									"// Store them as Environment RS_WORKFLOW_CURRENT variable.",
+									"//",
+									"let response = pm.response.json(),",
+									"    workflow = response.Workflow;",
+									"pm.environment.set(\"RS_WORKFLOW_CURRENT\", workflow);",
+									"",
+									"const DBG = pm.environment.get(\"RS_DEBUG_ENABLE\") || false;",
+									"if (DBG) {",
+									"    console.log(\"current workflow: \" + workflow);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}?slim=Params,Meta",
+							"host": [
+								"{{RS_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"machines",
+								"{{RS_UUID}}"
+							],
+							"query": [
+								{
+									"key": "slim",
+									"value": "Params,Meta"
+								}
+							]
+						},
+						"description": "GET the current profiles on a Machine to use in the PATCH operation."
+					},
+					"response": []
+				},
+				{
+					"name": "Set Workflow",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n\t{\n\t\t\"op\": \"test\",\n\t\t\"path\": \"/Workflow\",\n\t\t\"value\": \"{{RS_WORKFLOW_CURRENT}}\"\n\t},\n\t{\n\t\t\"op\": \"replace\",\n\t\t\"path\": \"/Workflow\",\n\t\t\"value\": \"{{WORKFLOW}}\"\n\t}\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}",
+							"host": [
+								"{{RS_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"machines",
+								"{{RS_UUID}}"
+							]
+						},
+						"description": "Sets the workflow on the Machine based on the Postman Variable WORKFLOW."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Runnable State",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6960ba3f-8cbf-42fa-89c7-d6197aeb07b4",
+								"exec": [
+									"//",
+									"// Get our existing Profiles to build our PATCH operations from.",
+									"// Store them as Environment RS_PROFILE variable.",
+									"//",
+									"let response = pm.response.json(),",
+									"    runnable = JSON.stringify(response.Runnable);",
+									"pm.environment.set(\"RS_RUNNABLE_CURRENT\", runnable);",
+									"",
+									"const DBG = pm.environment.get(\"RS_DEBUG_ENABLE\") || false;",
+									"if (DBG) {",
+									"    console.log(\"current runnable state: \" + runnable);",
+									"}",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}?slim=Params,Meta",
+							"host": [
+								"{{RS_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"machines",
+								"{{RS_UUID}}"
+							],
+							"query": [
+								{
+									"key": "slim",
+									"value": "Params,Meta"
+								}
+							]
+						},
+						"description": "GET the current profiles on a Machine to use in the PATCH operation."
+					},
+					"response": []
+				},
+				{
+					"name": "Set Rujnnable True",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0dea271c-caeb-4496-8afe-c028568ab8dc",
+								"exec": [
+									"// should noop if RS_RUNNABLE_CURRENT already set to true."
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n\t{\n\t\t\"op\": \"test\",\n\t\t\"path\": \"/Runnable\",\n\t\t\"value\": {{RS_RUNNABLE_CURRENT}}\n\t},\n\t{\n\t\t\"op\": \"replace\",\n\t\t\"path\": \"/Runnable\",\n\t\t\"value\": true\n\t}\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}",
+							"host": [
+								"{{RS_ENDPOINT}}"
+							],
+							"path": [
+								"api",
+								"v3",
+								"machines",
+								"{{RS_UUID}}"
+							]
+						},
+						"description": "Sets the workflow on the Machine based on the Postman Variable WORKFLOW."
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Runner",
+			"item": [
+				{
+					"name": "Set Runnable TRUE",
+					"item": [
+						{
+							"name": "Get Runnable State",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "6960ba3f-8cbf-42fa-89c7-d6197aeb07b4",
+										"exec": [
+											"//",
+											"// Get our existing Profiles to build our PATCH operations from.",
+											"// Store them as Environment RS_PROFILE variable.",
+											"//",
+											"let response = pm.response.json(),",
+											"    runnable = JSON.stringify(response.Runnable);",
+											"pm.environment.set(\"RS_RUNNABLE_CURRENT\", runnable);",
+											"",
+											"const DBG = pm.environment.get(\"RS_DEBUG_ENABLE\") || false;",
+											"if (DBG) {",
+											"    console.log(\"current runnable state: \" + runnable);",
+											"}",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}?slim=Params,Meta",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									],
+									"query": [
+										{
+											"key": "slim",
+											"value": "Params,Meta"
+										}
+									]
+								},
+								"description": "GET the current profiles on a Machine to use in the PATCH operation."
+							},
+							"response": []
+						},
+						{
+							"name": "Set Rujnnable True",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n\t{\n\t\t\"op\": \"test\",\n\t\t\"path\": \"/Runnable\",\n\t\t\"value\": {{RS_RUNNABLE_CURRENT}}\n\t},\n\t{\n\t\t\"op\": \"replace\",\n\t\t\"path\": \"/Runnable\",\n\t\t\"value\": true\n\t}\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									]
+								},
+								"description": "Sets the workflow on the Machine based on the Postman Variable WORKFLOW."
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Set Runnable FALSE",
+					"item": [
+						{
+							"name": "Get Runnable State",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "6960ba3f-8cbf-42fa-89c7-d6197aeb07b4",
+										"exec": [
+											"//",
+											"// Get our existing Profiles to build our PATCH operations from.",
+											"// Store them as Environment RS_PROFILE variable.",
+											"//",
+											"let response = pm.response.json(),",
+											"    runnable = JSON.stringify(response.Runnable);",
+											"pm.environment.set(\"RS_RUNNABLE_CURRENT\", runnable);",
+											"",
+											"const DBG = pm.environment.get(\"RS_DEBUG_ENABLE\") || false;",
+											"if (DBG) {",
+											"    console.log(\"current runnable state: \" + runnable);",
+											"}"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}?slim=Params,Meta",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									],
+									"query": [
+										{
+											"key": "slim",
+											"value": "Params,Meta"
+										}
+									]
+								},
+								"description": "GET the current profiles on a Machine to use in the PATCH operation."
+							},
+							"response": []
+						},
+						{
+							"name": "Set Rujnnable False",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"value": "application/json",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n\t{\n\t\t\"op\": \"test\",\n\t\t\"path\": \"/Runnable\",\n\t\t\"value\": {{RS_RUNNABLE_CURRENT}}\n\t},\n\t{\n\t\t\"op\": \"replace\",\n\t\t\"path\": \"/Runnable\",\n\t\t\"value\": false\n\t}\n]",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "{{RS_ENDPOINT}}/api/v3/machines/{{RS_UUID}}",
+									"host": [
+										"{{RS_ENDPOINT}}"
+									],
+									"path": [
+										"api",
+										"v3",
+										"machines",
+										"{{RS_UUID}}"
+									]
+								},
+								"description": "Sets the workflow on the Machine based on the Postman Variable WORKFLOW."
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{RS_TOKEN}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "2bc49e57-f3f1-4ddc-88f1-cec4ab04a802",
+				"type": "text/javascript",
+				"exec": [
+					"//",
+					"// Makes API call with Basic auth to get a JWT Token from the DRP Endpoint",
+					"//",
+					"// REQUIRES:   RS_ENDPOINT set in Postman Variables",
+					"// OPTIONAL:   RS_USERNAME, RS_PASSWORD, and RS_TOKEN_DURATION Variables",
+					"// DEBUGGING:  Set RS_DEBUG_ENABLE to true, to output debug Postman console info",
+					"//",
+					"",
+					"//",
+					"// These need to be set in a Postman Environment or Global variables to access your DRP",
+					"// Endpoint via correct Username/Password to acquire your token.  The duration",
+					"// should be set to something like 600 (seconds), and will renew once it expires.",
+					"// If username/password/duration not specified, we will default to the product defaults.",
+					"// Postman Variable \"RS_TOKEN\" will be set with the token for use in Auth Bearer type.",
+					"//",
+					"var getToken = true",
+					"const moment = require('moment')",
+					"",
+					"if (!_.has(pm.environment.toObject(), 'AccessTokenExpiry') ",
+					"    || !_.has(pm.environment.toObject(), 'RS_TOKEN')",
+					"    || pm.environment.get('AccessTokenExpiry') <= moment().valueOf()) {",
+					"} else {",
+					"    getToken = false",
+					"}",
+					"",
+					"if (getToken) {",
+					"    const ENDPOINT = pm.environment.get(\"RS_ENDPOINT\");",
+					"    const USER = pm.environment.get(\"RS_USERNAME\") ||'rocketskates';",
+					"    const PASS = pm.environment.get(\"RS_PASSWORD\") || 'r0cketsk8ts';",
+					"    const SECS = pm.environment.get(\"RS_TOKEN_DURATION\") || '600';",
+					"    const DBG = pm.environment.get(\"RS_DEBUG_ENABLE\") || false;",
+					"",
+					"    if (DBG) {",
+					"        console.log(\"DEBUGGING OUTPUT:\")",
+					"        console.log(\"endpoint:\" + ENDPOINT)",
+					"        console.log(\"username:\" + USER)",
+					"        console.log(\"password:\" + PASS)",
+					"        console.log(\"token seconds:\" + SECS)",
+					"    }",
+					"",
+					"    const BASIC = btoa(USER + ':' + PASS);",
+					"    const tokenDurationMS =  SECS * 1000;",
+					"",
+					"    const getRSTOKEN = {",
+					"       url: `${ENDPOINT}/api/v3/users/${USER}/token?ttl=${tokenDurationMS}`,",
+					"       method: 'GET',",
+					"        header: {",
+					"           Authorization: `Basic ${BASIC}`",
+					"        }",
+					"    }    ",
+					"    ",
+					"    pm.sendRequest(getRSTOKEN, (err, res) => {",
+					"        if (err === null) {",
+					"            pm.environment.set('RS_TOKEN', res.json().Token)",
+					"            pm.environment.set('AccessTokenExpiry', moment().valueOf() + SECS)",
+					"        }",
+					"    })",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "3038b95c-0f51-41f8-804e-660573bd96ca",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
