@@ -20,9 +20,9 @@ SETUP
 
 Create an Environment for the specific DRP Endpoint you will work with.  Set the following Variables (with examples, modify appropriately):
 
-  * RS_ENDPOINT = https://10.10.10.10:8092
-  * RS_USERNAME = drpadmin
-  * RS_PASSWORD = PASSWORD
+  * ``RS_ENDPOINT`` = ``https://10.10.10.10:8092``
+  * ``RS_USERNAME`` = ``drpadmin``
+  * ``RS_PASSWORD`` = ``PASSWORD``
 
 
 OPERATION
@@ -30,10 +30,11 @@ OPERATION
 
 The following Postman Variables implement the various pattern change behaviors.
 
-  * PROFILE = profile_to_change
-  * WORKFLOW = workflow_to_set
+  * ``RS_UUID`` = the DRP Machine UUID object to modify
+  * ``PROFILE`` = profile_to_change
+  * ``WORKFLOW`` = workflow_to_set
 
-Setting these values will either add/remove (profile), or set the operational Workflow on the Machine object.
+Setting these values will either add/remove (profile), or set the operational Workflow on the Machine object specified by ``RS_UUID``.
 
 
 NOTES
