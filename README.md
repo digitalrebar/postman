@@ -5,6 +5,12 @@ Digital Rebar Platform - various Postman related Patterns for operating infrastr
 
 To operate this Collection you will need to set an apprpriate Environment with your DRP Endpoint information.  In addition, various Postman Variables are used to drive the various patterns found in this collection.
 
+Postman Usage in Video Form
+---------------------------
+
+The Postman usage patterns and examples are available for your review in video form, you can find the video at:
+
+  * https://youtu.be/OsPhkJ-P-Sk
 
 SOURCE CODE
 -----------
