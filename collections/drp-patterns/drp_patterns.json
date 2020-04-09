@@ -657,7 +657,7 @@
 					"response": []
 				},
 				{
-					"name": "Set Rujnnable True",
+					"name": "Set Runnable True",
 					"event": [
 						{
 							"listen": "test",
